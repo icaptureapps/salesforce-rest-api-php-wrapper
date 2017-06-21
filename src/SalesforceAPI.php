@@ -637,7 +637,7 @@ class SalesforceAPI
         // Set the Authorization header
         $request_headers = array(
             'Authorization' => 'Bearer '.$this->access_token,
-        ];
+        );
 
         // Merge all the headers
         $request_headers = array_merge($request_headers, $headers);
@@ -717,7 +717,7 @@ class SalesforceAPI
             case 'GET':
                 curl_setopt($this->handle, CURLOPT_HTTPGET, true);
                 if (isset($params) && $params !== null && !empty($params)) {
-                    $url .= '?'.http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+                    $url .= '?'.http_build_query($params, '', '&');
                 }
                 break;
             default:
