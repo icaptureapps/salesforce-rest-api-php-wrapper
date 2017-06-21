@@ -103,9 +103,9 @@ class SalesforceAPI
         $this->instance_url  = $instanceUrl.'/services/data/v'.$version.'/';
         $this->batch_url     = $instanceUrl.'/services/async/'.$version.'/job';
 
-        $this->headers = [
+        $this->headers = array(
             'Content-Type' => 'application/json',
-        ];
+        );
     }
 
     /**
@@ -122,13 +122,13 @@ class SalesforceAPI
     public function login($username, $password, $securityToken)
     {
         // Set the login data
-        $login_data = [
+        $login_data = array(
             'grant_type' => self::GRANT_TYPE,
             'client_id' => $this->client_id,
             'client_secret' => $this->client_secret,
             'username' => $username,
             'password' => $password.$securityToken,
-        ];
+        );
 
         $ch = curl_init();
 
@@ -225,7 +225,7 @@ class SalesforceAPI
      */
     public function getObjectMetadata($objectName, $all = false, DateTime $since = null)
     {
-        $headers = [];
+        $headers = array();
         // Check if the If-Modified-Since header should be set
         if ($since !== null && $since instanceof DateTime) {
             $headers['IF-Modified-Since'] = $since->format('D, j M Y H:i:s e');
@@ -236,9 +236,9 @@ class SalesforceAPI
 
         // Should this return all meta data including information about each field, URLs, and child relationships
         if ($all === true) {
-            return $this->request(self::OBJECT_PATH.$objectName.'/describe/', [], self::METHOD_GET, $headers);
+            return $this->request(self::OBJECT_PATH.$objectName.'/describe/', array(), self::METHOD_GET, $headers);
         } else {
-            return $this->request(self::OBJECT_PATH.$objectName, [], self::METHOD_GET, $headers);
+            return $this->request(self::OBJECT_PATH.$objectName, array(), self::METHOD_GET, $headers);
         }
     }
 
@@ -317,7 +317,7 @@ class SalesforceAPI
      */
     public function get($objectName, $objectId, $fields = null)
     {
-        $params = [];
+        $params = array();
         // If fields are included, append them to the parameters
         if ($fields !== null && is_array($fields)) {
             $params['fields'] = implode(',', $fields);
@@ -339,9 +339,9 @@ class SalesforceAPI
      */
     public function searchSOQL($query, $all = false, $explain = false)
     {
-        $search_data = [
+        $search_data = array(
             'q' => $query,
-        ];
+        );
 
         // If the explain flag is set, it will return feedback on the query performance
         if ($explain) {
@@ -373,14 +373,14 @@ class SalesforceAPI
         }
 
         // Set the Authorization header
-        $request_headers = [
+        $request_headers = array(
             'Authorization' => 'Bearer '.$this->access_token,
-        ];
+        );
 
         // Merge all the headers
-        $request_headers = array_merge($request_headers, []);
+        $request_headers = array_merge($request_headers, array());
 
-        return $this->httpRequest($this->base_url.$query, [], $request_headers);
+        return $this->httpRequest($this->base_url.$query, array(), $request_headers);
     }
 
     /**
@@ -394,11 +394,11 @@ class SalesforceAPI
      */
     public function createJob($operation, $object, $contentType, $externalIdFieldName = false)
     {
-      $payload = [
+      $payload = array(
         "operation"   => $operation,
         "object"      => $object,
         "contentType" => $contentType
-      ];
+      );
 
       if ($externalIdFieldName && $operation == Job::OPERATION_UPSERT)
         $payload['externalIdFieldName'] = $externalIdFieldName;
@@ -470,7 +470,7 @@ class SalesforceAPI
     {
       $jobId = $this->resolveToJobId($job);
 
-      $payload = [ 'state' => Job::STATE_CLOSED ];
+      $payload = array( 'state' => Job::STATE_CLOSED );
       $data = $this->httpBatchRequest( "/{$jobId}", $payload );
 
       if ( $data['state'] != Job::STATE_CLOSED )
@@ -492,7 +492,7 @@ class SalesforceAPI
     {
       $jobId = $this->resolveToJobId($job);
 
-      $payload = [ 'state' => Job::STATE_ABORTED ];
+      $payload = array( 'state' => Job::STATE_ABORTED );
       $data = $this->httpBatchRequest( "/{$job->id}", $payload );
 
       if ( $data['state'] != Job::STATE_ABORTED )
@@ -514,7 +514,7 @@ class SalesforceAPI
     {
       $jobId = $this->resolveToJobId( $job );
 
-      $data = $this->httpBatchRequest( "/{$jobId}", [], self::METHOD_GET );
+      $data = $this->httpBatchRequest( "/{$jobId}", array(), self::METHOD_GET );
 
       return new Job($data);
     }
@@ -530,14 +530,14 @@ class SalesforceAPI
     {
       $jobId = $this->resolveToJobId( $job );
 
-      $data = $this->httpBatchRequest( "/{$jobId}/batch", [], self::METHOD_GET );
+      $data = $this->httpBatchRequest( "/{$jobId}/batch", array(), self::METHOD_GET );
 
       if ( !$job instanceof Job )
       {
         $job = $this->getJob( $job );
       }
 
-      $result = [];
+      $result = array();
       foreach ( $data['batchInfo'] as $batch )
       {
         $result[] = new BatchInfo( $batch, $job );
@@ -578,7 +578,7 @@ class SalesforceAPI
       $jobId = $this->resolveToJobId($job);
       $batchId = $this->resolveToBatchInfoId($batchInfo);
 
-      $data = $this->httpBatchRequest("/{$jobId}/batch/{$batchId}", [], self::METHOD_GET);
+      $data = $this->httpBatchRequest("/{$jobId}/batch/{$batchId}", array(), self::METHOD_GET);
 
       if (!$job instanceof Job)
       {
@@ -600,14 +600,14 @@ class SalesforceAPI
       $jobId = $this->resolveToJobId($job);
       $batchId = $this->resolveToBatchInfoId($batchInfo);
 
-      $data = $this->httpBatchRequest("/{$jobId}/batch/{$batchId}/result", [], self::METHOD_GET);
+      $data = $this->httpBatchRequest("/{$jobId}/batch/{$batchId}/result", array(), self::METHOD_GET);
 
       if (!$batchInfo instanceof BatchInfo)
       {
         $batchInfo = $this->getBatchInfo($job,$batchInfo);
       }
 
-      $result = [];
+      $result = array();
       foreach ( $data as $batchResult )
       {
         $result[] = new BatchResult($batchResult, $batchInfo);
@@ -627,7 +627,7 @@ class SalesforceAPI
      *
      * @throws SalesforceAPIException
      */
-    protected function request($path, $params = [], $method = self::METHOD_GET, $headers = [])
+    protected function request($path, $params = array(), $method = self::METHOD_GET, $headers = array())
     {
         // Throw an error if no access token
         if (!isset($this->access_token)) {
@@ -635,7 +635,7 @@ class SalesforceAPI
         }
 
         // Set the Authorization header
-        $request_headers = [
+        $request_headers = array(
             'Authorization' => 'Bearer '.$this->access_token,
         ];
 
@@ -652,7 +652,7 @@ class SalesforceAPI
      * @param array  $payload (default: [])
      * @param string $method (default: 'POST')
      */
-    protected function httpBatchRequest($path, $payload = [], $method = self::METHOD_POST)
+    protected function httpBatchRequest($path, $payload = array(), $method = self::METHOD_POST)
     {
       // Throw an error if no access token
       if (!isset($this->access_token)) {
@@ -660,9 +660,9 @@ class SalesforceAPI
       }
 
       // Set the Authorization header (must be set as session, not Authorization Bearer)
-      $request_headers = [
+      $request_headers = array(
           'X-SFDC-Session' => $this->access_token,
-      ];
+      );
 
       return $this->httpRequest($this->batch_url.$path, $payload, $request_headers, $method);
     }
@@ -682,13 +682,13 @@ class SalesforceAPI
     protected function httpRequest($url, $params = null, $headers = null, $method = self::METHOD_GET)
     {
         $this->handle = curl_init();
-        $options = [
+        $options = array(
             CURLOPT_CONNECTTIMEOUT => 2,
             CURLOPT_TIMEOUT        => 60,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_BUFFERSIZE     => 128000,
             CURLINFO_HEADER_OUT    => true,
-        ];
+        );
         curl_setopt_array($this->handle, $options);
 
         // Set the headers
@@ -752,7 +752,7 @@ class SalesforceAPI
      */
     private function createCurlHeaderArray($headers)
     {
-        $curl_headers = [];
+        $curl_headers = array();
         // Create the header array for the request
         foreach ($headers as $key => $header) {
             $curl_headers[] = $key.': '.$header;
@@ -784,7 +784,7 @@ class SalesforceAPI
         switch ($request_info['http_code']) {
             case 304:
                 if ($response === '') {
-                    return json_encode(['message' => 'The requested object has not changed since the specified time']);
+                    return json_encode(array('message' => 'The requested object has not changed since the specified time'));
                 }
                 break;
             case 300:
@@ -792,7 +792,7 @@ class SalesforceAPI
             case 201:
             case 204:
                 if ($response === '') {
-                    return json_encode(['success' => true]);
+                    return json_encode(array('success' => true));
                 }
                 break;
             default:
