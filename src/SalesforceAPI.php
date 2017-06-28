@@ -108,6 +108,56 @@ class SalesforceAPI
         );
     }
 
+
+
+    /**
+     * Logs in the user to Salesforce with a access_token or  , password, and security token.
+     *
+     * @param string $username
+     * @param string $password
+     * @param string $securityToken
+     *
+     * @return mixed
+     *
+     * @throws SalesforceAPIException
+     */
+    public function loginRefreshToken($refresh_token)
+    {
+        // Set the login data
+        $login_data = array(
+            'grant_type' => 'refresh_token',
+            'client_id' => $this->client_id,
+            'client_secret' => $this->client_secret,
+            'refresh_token' => $refresh_token
+        );
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $this->base_url.'/services/oauth2/token');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $login_data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        $ret = curl_exec($ch);
+
+        $err = curl_error($ch);
+
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        //exit;
+
+        $this->checkForRequestErrors($ret, $ch);
+        curl_close($ch);
+
+        $this->afterLoginSetup( json_decode($ret ) );
+
+        return json_decode($ret,true);
+    }
+
+
+
+
+
     /**
      * Logs in the user to Salesforce with a username, password, and security token.
      *
